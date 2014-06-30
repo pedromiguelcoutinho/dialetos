@@ -1,0 +1,30 @@
+html, body {height:100%;}
+
+/*
+#map{
+    border: 1px solid #ccc;
+}*/
+
+body{
+    background-color: #e0e0e0;
+}
+
+.navbar-default{
+    //background-color: #E0E0E0; // #c9e2b3; // #67b168
+}
+
+.navbar-text{
+    color: black !important;
+}
+
+.navbar-brand{
+    color: black !important;
+}
+
+
+.navbar-default {
+background-color: #f8f8f8;
+border-color: #e7e7e7;
+}
+
+.spacer-btn {margin-left: 8px;}
