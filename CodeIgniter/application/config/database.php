@@ -49,8 +49,13 @@ $active_group = 'default';
 $active_record = TRUE;
 
 $db['default']['hostname'] = 'localhost';
-$db['default']['username'] = 'root'; //'adminhWkkARw';
-$db['default']['password'] = ''; //'E_k55bNHlvau';
+<<<<<<< HEAD
+$db['default']['username'] = 'adminhWkkARw'; //'root'; 
+$db['default']['password'] = 'E_k55bNHlvau'; //'';
+=======
+$db['default']['username'] = 'root';
+$db['default']['password'] = '';
+>>>>>>> parent of ecdd52e... Dialetos
 $db['default']['database'] = 'dialetos';
 $db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
