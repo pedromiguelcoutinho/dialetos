@@ -41,10 +41,14 @@
                         <li>&nbsp;&nbsp;</li>
                         <li><button class="navbar-btn btn btn-success" id="limpaFiltros">Limpa Filtros</button></li>
                         <li>&nbsp;&nbsp;</li>
+                        <li><button class="navbar-btn btn btn-success" id="atualizaPontos"><span class="glyphicon glyphicon-refresh"></span></button></li>
+                        <li>&nbsp;&nbsp;</li>
                         <li><button class="navbar-btn btn btn-success" id="criarDialeto" style="display: none">Criar Diateto</button></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li><button id="instrucoes" class="pull-left navbar-btn btn btn-info" data-toggle="modal" data-target="#modalAjuda">Ajuda</button></li>
+                        <li>&nbsp;&nbsp;</li>
+                        <li><button style="display: none" id="regista" class='pull-right navbar-btn btn btn-info' data-toggle='modal' data-target='#modalRegisto'>Registar</button></li>
                         <li>&nbsp;&nbsp;&nbsp;&nbsp;</li>
                         <li><button style="margin-right:15%; display: none;" id='login' class='pull-right navbar-btn btn btn-info' data-toggle='modal' data-target='#modalLogin'>Login</button></li>
                         <li><button style="margin-right:15%; display: none;" id="logout" class="pull-right navbar-btn btn btn-info">Logout</button></li>
@@ -60,41 +64,75 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Ajuda</h4>
+                        <h3 class="modal-title">Ajuda</h3>
                     </div>
                     <div class="modal-body">
                         <div class="container">
                             <h4>Pontos de Dialetos no mapa</h4>
                             <p>Para um determinado dialeto é possível:</p>
                             <ul>
-                                <li><p>Criar Pontos no mapa</p></li>
-                                <li><p>Editar Pontos no mapa</p></li>
-                                <li><p>Remover Pontos do mapa</p></li>
+                                <li><p>Criar Pontos no mapa (após login de administração)</p></li>
+                                <li><p>Editar Pontos no mapa (após login de administração)</p></li>
+                                <li><p>Remover Pontos do mapa (após login de administração)</p></li>
                                 <li><p>Visualizar Informação detalhada sobre o ponto/dialeto</p></li>
                             </ul>
                             <h4>Filtros de Dialetos</h4>
                             <p>Existem vários filtros para mostrar apenas alguns dialetos, nomeadamente:</p>
                             <ul>
                                 <li><p>Filtro por país lusófono: mostra apenas os dialetos dos países selecionados.</p></li>
-                                <li><p>Filtro por tipo de dialeto: falado, escrito ou ambos.</p></li>
-                                <li><p>Filtro por nome de dialeto, permitindo mostrar os dialetos que tenham a palavra de procura.</p></li>
-                                <li><p>Visualizar Informação detalhada sobre o ponto/dialeto</p></li>
+                                <li><p>Filtro por tipo de dialeto: ex. falado, escrito, etc.</p></li>
+                                <li><p>Filtro por nome de dialeto, permitindo mostrar os dialetos que tenham <br/>a palavra de procura.</p></li>
                             </ul>
                             <p></p>
                             <h4>Utilizador</h4>
                             <p>O Utilizador visualizar os pontos sobre os dialetos e pode aplicar os filtros disponíveis.</p>
                             <h4>Administrador</h4>
-                            <p>O Administrador pode gerir os pontos e a informação sobre os dialetos a eles associado.</p>
-                        </div> <!-- /container -->
+                            <p>O Administrador pode gerir os pontos e a informação sobre os dialetos a eles associado.<br/>
+                                O super-administrador pode criar outros administradores (normais) para gerirem os <br/>pontos no mapa e respetivos dialetos.</p>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <b class="pull-left">GSI-UM HC</b>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <div class="modal fade" id="modalRegisto" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Efetuar Registo</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container" id="formContainer">
+                            <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="form-horizontal" role="form" id="myForm">
+                                <div class="form-group text-center">
+                                    <label for="inputEmailRegisto" class="col-sm-2 control-label">Email</label>
+                                    <div class="col-sm-10">
+                                        <input type="email" class="form-control" id="inputEmailRegisto" name="email" size="75" placeholder="Email" required autofocus style="width: 300px;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPasswordRegisto" class="col-sm-2 control-label">Password</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" class="form-control" name="password" size="50" id="inputPasswordRegisto" placeholder="Password" required autofocus style="width: 300px;">
+                                    </div>
+                                </div>
+                                <p id="errorRegisto" style="width: 40%; margin-top: 10px;"></p>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary" id="fazRegisto">Registar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="modal fade" id="modalLogin" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -124,8 +162,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-info" id="fazlogin">Login</button>
-                        <button class="btn btn-info" id="regista">Registar</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary" id="fazlogin">Login</button>
                     </div>
                 </div>
             </div>
@@ -150,10 +188,11 @@
                                 </div>
                             </form>
                             <p id="erroPW" style="width: 40%; margin-top: 10px;"></p>
-                        </div> <!-- /container -->
+                        </div>
                     </div>
 
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
                         <button class="btn btn-primary" id="recupera">Recuperar</button>
                     </div>
                 </div>
@@ -165,63 +204,65 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Registe o Dialeto</h4>
+                        <h4 class="modal-title" id="myModalLabel">Criar Novo Dialeto</h4>
                     </div>
-
                     <div class="modal-body">
                         <div class="container" id="formContainer">
-                            <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="form-horizontal" role="form">
-                                <div class="col-md-6">
-                                    <label class="col-sm-2 control-label">Latitude: </label><span id="latitude"></span><br/>
-                                    <label class="col-sm-2 control-label">Longitude: </label><span id="longitude"></span>
-                                </div>    
+                            <form id="formRegistaPonto" method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="form-horizontal" role="form">
+                                <div class="form-group text-center">
+                                    <label for="inputDesignacao" class="col-sm-1 control-label">Designação</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputDesignacao" name="inputDesignacao" size="75" placeholder="Designação do Dialeto" required autofocus style="width: 200px;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">Latitude</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputLatitude" name="inputLatitude" size="75" placeholder="Latitude" readonly autofocus style="width: 200px;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">Longitude</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputLongitude" name="inputLongitude" size="75" placeholder="Longitude" readonly autofocus style="width: 200px;">
+                                    </div>
+                                </div>
 
-                                <div class="col-md-2">
-                                    <select class="form-control paisesPonto" data-width="100%"></select>
-                                    <select class="form-control tiposPonto"></select>
-
-                                </div>
-
-                                <div class="form-group text-ccenter">
-                                    <label class="col-sm-2 control-label">Dialeto</label>
+                                <div class="form-group">
+                                    <label for="inputPais" class="col-sm-1 control-label">País</label>
                                     <div class="col-sm-10">
-                                        <input type="radio" name="servico" id="inputAgua" value="inputAgua" checked>&nbsp;Água&nbsp;
-                                        <input type="radio" name="servico" id="inputLuz" value="inputLuz">&nbsp;Luz&nbsp;
-                                        <input type="radio" name="servico" id="inputGas" value="inputGas">&nbsp;Gás
+                                        <select id="inputPais" name="inputPais" class="form-control paisesPonto" required style="width: 200px;"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputTipo" class="col-sm-1 control-label">Tipo</label>
+                                    <div class="col-sm-10">
+                                        <select id="inputTipo" name="inputTipo" class="form-control tiposPonto" required style="width: 200px;"></select>
                                     </div>
                                 </div>
                                 <div class="form-group text-ccenter">
-                                    <label for="situacao" class="col-sm-2 control-label">Situação</label>
+                                    <label for="inputDescricao" class="col-sm-1 control-label">Descrição</label>
                                     <div class="col-sm-10">
-                                        <input type="radio" name="situacao" id="inputLigado" value="inputLigado" checked>&nbsp;Ligado&nbsp;
-                                        <input type="radio" name="situacao" id="inputDesligado" value="inputDesligado">&nbsp;Desligado&nbsp;
-                                        <input type="radio" name="situacao" id="inputAvariado" value="inputAvariado">&nbsp;Avariado&nbsp;
-                                        <input type="radio" name="situacao" id="inputContagem" value="inputContagem">&nbsp;Em contagem
+                                        <textarea rows="5" cols="70" id="inputDescricao" name="inputDescricao" required placeholder="Descrição do dialeto"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group text-ccenter">
-                                    <label for="inputConsumo" class="col-sm-2 control-label">Consumo</label>
+                                <div class="form-group text-center">
+                                    <label for="inputLink" class="col-sm-1 control-label">Link(URL)</label>
                                     <div class="col-sm-10">
-                                        <input type="number" name="" id="inputConsumo" required>
+                                        <input type="text" class="form-control" id="inputLink" name="inputLink" size="75" placeholder="URL sobre dialeto (http://...)" autofocus style="width: 444px;">
                                     </div>
                                 </div>
-                                <div class="form-group text-ccenter">
-                                    <label for="inputData" class="col-sm-2 control-label">Data Instalação</label>
+                                <div class="form-group text-center">
+                                    <label for="inputImagem" class="col-sm-1 control-label">Imagem(URL)</label>
                                     <div class="col-sm-10">
-                                        <input type="date" id="inputData" required>
-                                    </div>
-                                </div>
-                                <div class="form-group text-ccenter">
-                                    <label for="inputDescricao" class="col-sm-2 control-label">Descrição</label>
-                                    <div class="col-sm-10">
-                                        <textarea rows="2" cols="50" id="inputDescricao" required></textarea>
+                                        <input type="text" class="form-control" id="inputImagem" name="inputImagem" size="75" placeholder="URL da imagem (http://...)" autofocus style="width: 444px;">
                                     </div>
                                 </div>
                             </form>
                         </div>
                     </div>
-
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
                         <button class="btn btn-primary" id="registarPonto">Registar</button>
                     </div>
                 </div>
@@ -233,44 +274,57 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Edite o Contador</h4>
-                        <p id="lonlat"></p>
+                        <h4 class="modal-title" id="myModalLabel">Editar dialeto</h4>
                     </div>
-
                     <div class="modal-body">
                         <div class="container" id="formContainer">
-                            <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="form-horizontal" role="form">
-                                <div class="form-group text-ccenter">
-                                    <label for="situacao" class="col-sm-2 control-label">Situação</label>
+                            <form id="formEditaPonto" method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="form-horizontal" role="form">
+                                <input type="hidden" id="inputIdDialetoEdit" name="inputIdDialetoEdit"/>
+                                <div class="form-group text-center">
+                                    <label for="inputDesignacaoEdit" class="col-sm-1 control-label">Designação</label>
                                     <div class="col-sm-10">
-                                        <input type="radio" name="situacao" id="inputLigadoEdit" value="inputLigado" checked>&nbsp;Ligado&nbsp;
-                                        <input type="radio" name="situacao" id="inputDesligadoEdit" value="inputDesligado">&nbsp;Desligado&nbsp;
-                                        <input type="radio" name="situacao" id="inputAvariadoEdit" value="inputAvariado">&nbsp;Avariado&nbsp;
-                                        <input type="radio" name="situacao" id="inputContagemEdit" value="inputContagem">&nbsp;Em contagem
+                                        <input type="text" class="form-control" id="inputDesignacaoEdit" name="inputDesignacaoEdit" size="75" placeholder="Designação do Dialeto" required autofocus style="width: 200px;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPaisEdit" class="col-sm-1 control-label">País</label>
+                                    <div class="col-sm-10">
+                                        <select id="inputPaisEdit" name="inputPaisEdit" class="form-control paisesPonto" required style="width: 200px;"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputTipoEdit" class="col-sm-1 control-label">Tipo</label>
+                                    <div class="col-sm-10">
+                                        <select id="inputTipoEdit" name="inputTipoEdit" class="form-control tiposPonto" required style="width: 200px;"></select>
                                     </div>
                                 </div>
                                 <div class="form-group text-ccenter">
-                                    <label for="inputConsumo" class="col-sm-2 control-label">Consumo</label>
+                                    <label for="inputDescricaoEdit" class="col-sm-1 control-label">Descrição</label>
                                     <div class="col-sm-10">
-                                        <input type="number" id="inputConsumoEdit" required>
+                                        <textarea rows="5" cols="70" id="inputDescricaoEdit" name="inputDescricaoEdit" required placeholder="Descrição do dialeto"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group text-ccenter">
-                                    <label for="inputDescricaoEdit" class="col-sm-2 control-label">Descrição</label>
+                                <div class="form-group text-center">
+                                    <label for="inputLinkEdit" class="col-sm-1 control-label">Link(URL)</label>
                                     <div class="col-sm-10">
-                                        <textarea rows="2" cols="50" id="inputDescricaoEdit" required></textarea>
+                                        <input type="text" class="form-control" id="inputLinkEdit" name="inputLinkEdit" size="75" placeholder="URL sobre dialeto (http://...)" autofocus style="width: 444px;">
                                     </div>
                                 </div>
-                                <p id="erroEdit" style="width: 40%; margin-top: 10px;"></p>
+                                <div class="form-group text-center">
+                                    <label for="inputImagemEdit" class="col-sm-1 control-label">Imagem(URL)</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputImagemEdit" name="inputImagemEdit" size="75" placeholder="URL da imagem (http://...)" autofocus style="width: 444px;">
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
-
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
                         <button class="btn btn-primary" id="editarPonto">Editar</button>
                     </div>
                 </div>
-            </div>
+            </div>        
         </div>
 
     </body>

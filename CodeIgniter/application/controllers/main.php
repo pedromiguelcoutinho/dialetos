@@ -56,10 +56,10 @@ class Main extends CI_Controller {
     public function fazLogin($email, $password) {
         $this->load->model('PedidosUtilizadores');
         $verifica = $this->PedidosUtilizadores->fazLogin($email, $password);
-        if ($verifica) {
-            $data = array('email' => $email,'is_logged_in' => 1);
+        if($verifica['estado']) {
+            $data = array('email' => $email,'is_logged_in' => 1, 'tipo' => $verifica['tipo']);
             $this->session->set_userdata($data);
-            $json = array('estado' => true);
+            $json = array('estado' => true, 'tipo' => $verifica['tipo']);
             echo json_encode($json);
         } else {
             $json = array('estado' => false);
@@ -79,7 +79,7 @@ class Main extends CI_Controller {
             $json = array('estado' => false);
             echo json_encode($json);
         } else {
-            if ($this->PedidosUtilizadores->faz_Registo($email, $password)) {
+            if ($this->PedidosUtilizadores->fazRegisto($email, $password)) {
                 $json = array('estado' => true);
                 echo json_encode($json);
             } else {
@@ -88,18 +88,7 @@ class Main extends CI_Controller {
             }
         }
     }
-
-    public function getAcessos() {
-        $email = $this->session->userdata('email');
-        $this->load->model('pedidosUtilizadores');
-        $json = $this->pedidosUtilizadores->get_Acessos($email);
-        echo $json;
-    }
-
     
-
-    
-
     public function recuperaPassword($email) {
         $this->load->model('PedidosUtilizadores');
         if ($this->PedidosUtilizadores->enviaPassword($email)) {
@@ -110,17 +99,4 @@ class Main extends CI_Controller {
             echo json_encode($json);
         }
     }
-
-    public function atribuiAcessos($email, $agua, $luz, $gas) {
-        $this->load->model('pedidosUtilizadores');
-        $existe = $this->pedidosUtilizadores->emailExiste($email);
-        if ($existe) {
-            $this->pedidosUtilizadores->atribui_Acessos($email, $agua, $luz, $gas);
-            $json = array('estado' => true);
-        } else {
-            $json = array('estado' => false);
-        }
-        echo json_encode($json);
-    }
-
 }

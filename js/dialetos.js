@@ -3,32 +3,19 @@ var apiKey = "Aj5xvmpos4E-Zb3hMrW6xHZckz2Q3_-babJESX3DtfZmuI07q9el6KO5iY53G09O";
 var map, layer;
 var lon, lat;
 var clickfeito = false;
-var acessos = new Array();
 var tipoFinal = null;
 var estadoFavoritos = 0;
-var temAcessos = false;
 var texto;
 var vector, vectore, utilizador, estado;
 var desenhaPonto;
 var criarPonto = false;
 var descricaoFinal, consumoFinal, situacaoFinal, idFinal, idPontoFinal;
-var featureglobal;
+var featureglobal, selectedFeature;
 var style = {
     fillColor: '#000',
     fillOpacity: 0.1,
     strokeWidth: 0
 };
-
-/*$('.navbar li').click(function(e) {
- alert("novo");
- $('.navbar li.active').removeClass('active');
- var $this = $(this);
- if (!$this.hasClass('active')) {
- $this.addClass('active');
- }
- e.preventDefault();
- });*/
-
 
 function atualizaMapa() {
     vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + $("#selecao_pais").val() + "/" + $("#selecao_tipo").val() + "/" + $("#nomeProcurar").val();
@@ -67,7 +54,7 @@ function init() {
             var paisesOption = "";
             for (var i = 0; i < paises.length; i++) {
                 paisesHtml += '<li class="dropdown-menu-item" role="presentation"><a id="' + paises[i].id + '" href="#">' + paises[i].designacao + '</a></li>';
-                paisesOption += '<option value="'+paises[i].id+'">'+paises[i].designacao+'</option>';
+                paisesOption += '<option value="' + paises[i].id + '">' + paises[i].designacao + '</option>';
             }
             paisesHtml += '<li class="dropdown-menu-item active" role="presentation"><a id="0" href="#">Todos</a></li>';
             $("#selecao_pais").text("Todos");
@@ -91,7 +78,7 @@ function init() {
             var tiposOption = "";
             for (var i = 0; i < tipos.length; i++) {
                 tiposHtml += '<li class="dropdown-menu-item" role="presentation"><a role="menuitem" id="' + tipos[i].id + '" tabindex="-1" href="#">' + tipos[i].designacao + '</a></li>';
-                tiposOption += '<option value="'+tipos[i].id+'">'+tipos[i].designacao+'</option>';
+                tiposOption += '<option value="' + tipos[i].id + '">' + tipos[i].designacao + '</option>';
             }
             tiposHtml += '<li class="dropdown-menu-item active" role="presentation"><a role="menuitem" id="0" tabindex="-1" href="#">Todos</a></li>';
             $("#selecao_tipo").text("Todos");
@@ -126,19 +113,23 @@ function init() {
         atualizaMapa();
     });
 
+    $("#atualizaPontos").click(function() {
+        atualizaMapa();
+    });
+
     $("#criarDialeto").click(function() {
-        if (criarPonto){  
-          criarPonto = false;
-          desenhaPonto.deactivate();
-          $("#criarDialeto").html("Criar Diateto");
-          $("#criarDialeto").removeClass("btn-danger");
-          $("#criarDialeto").addClass("btn-primary");
+        if (criarPonto) {
+            criarPonto = false;
+            desenhaPonto.deactivate();
+            $("#criarDialeto").html("Criar Diateto");
+            $("#criarDialeto").removeClass("btn-danger");
+            $("#criarDialeto").addClass("btn-primary");
         } else {
-          criarPonto = true;
-          desenhaPonto.activate();
-          $("#criarDialeto").html("Cancelar Criar Diateto");
-          $("#criarDialeto").removeClass("btn-primary");
-          $("#criarDialeto").addClass("btn-danger");
+            criarPonto = true;
+            desenhaPonto.activate();
+            $("#criarDialeto").html("Cancelar Criar Diateto");
+            $("#criarDialeto").removeClass("btn-primary");
+            $("#criarDialeto").addClass("btn-danger");
         }
     });
 
@@ -151,6 +142,8 @@ function init() {
             } else {
                 $("#logout").show();
                 $("#criarDialeto").show();
+                if (tipoFinal == "admin")
+                    $("#regista").show();
             }
         });
     });
@@ -176,8 +169,9 @@ function init() {
                     $("#login").hide();
                     $("#logout").show();
                     $("#criarDialeto").show();
-                }
-                else {
+                    if (dados.tipo == "admin")
+                        $("#regista").show();
+                } else {
                     $("#modalLogin").modal('show');
                     $("#erroLogin").addClass("alert alert-danger");
                     $("#erroLogin").html("Email e/ou password errados.");
@@ -191,12 +185,138 @@ function init() {
             $("#logout").hide();
             $("#login").show();
             $("#criarDialeto").hide();
+            $("#regista").hide();
             //apaga popup do mapa caso esteja aberta
             map.removePopup(featureglobal.popup);
             featureglobal.popup.destroy();
             featureglobal.popup = null;
         });
     });
+
+    $("#fazRegisto").click(function() {
+        var email = $("#inputEmailRegisto").val();
+        var password = $("#inputPasswordRegisto").val();
+        if (email.length == 0 || password.length == 0) {
+            alert("Tem que preencher todos os campos!");
+        } else {
+            $.getJSON("../CodeIgniter/main/fazRegisto/" + email + "/" + password + "", function(info) {
+                if (info.estado) {
+                    $("#errorRegisto").removeClass("alert-danger");
+                    $("#errorRegisto").addClass("alert alert-success");
+                    $("#errorRegisto").html("Registado com sucesso. Efetue login.");
+                }
+                else {
+                    $("#errorRegisto").removeClass("alert-success");
+                    $("#errorRegisto").addClass("alert alert-danger");
+                    $("#errorRegisto").html("Email já existente.");
+                }
+            });
+        }
+    });
+
+    $("#recupera").click(function() {
+        email = $("#inputEmailRecupera").val();
+        $.getJSON("../CodeIgniter/main/recuperaPassword/" + email + "", function(info) {
+            if (info.estado) {
+                $("#modalPW").modal('hide');
+                $("#erro").addClass("alert alert-success");
+                $("#erro").html("Password enviada para o seu email.");
+            }
+            else {
+                $("#modalPW").modal('show');
+                $("#erroPW").addClass("alert alert-danger");
+                $("#erroPW").html("Email não registado.");
+            }
+        });
+    });
+
+    $('#registaPonto').on('hidden.bs.modal', function() {
+        $("#inputDesignacao").val('');
+        $("#inputLatitude").val('');
+        $("#inputLongitude").val('');
+        $("#inputDescricao").val('');
+        $("#inputLink").val('');
+        $("#criarDialeto").html("Criar Diateto");
+        $("#criarDialeto").removeClass("btn-danger");
+        $("#criarDialeto").addClass("btn-primary");
+    });
+
+    $("#registarPonto").click(function() {
+        var inputDesignacao, inputLatitude, inputLongitude, inputPais, inputTipo, inputDescricao, inputLink, erro = false, erroMsg = "Erro Registo de Dialeto:\n\n";
+
+        inputDesignacao = $("#inputDesignacao").val();
+        inputLatitude = $("#inputLatitude").val();
+        inputLongitude = $("#inputLongitude").val();
+        inputPais = $("#inputPais").val();
+        inputTipo = $("#inputTipo").val();
+        inputDescricao = $("#inputDescricao").val();
+        inputLink = $("#inputLink").val();
+        inputImagem = $("#inputImagem").val();
+        if (inputDesignacao.length == 0) {
+            erro = true;
+            erroMsg += "Designação não pode ser vazia.\n";
+        }
+        if (inputDescricao.length == 0) {
+            erro = true;
+            erroMsg += "Descrição não pode ser vazia.\n";
+        }
+        if (erro) {
+            alert(erroMsg);
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "../CodeIgniter/pontos/registaPonto",
+                data: {inputDesignacao: inputDesignacao, inputLatitude: inputLatitude, inputLongitude: inputLongitude, inputPais: inputPais, inputTipo: inputTipo, inputDescricao: inputDescricao, inputLink: inputLink, inputImagem: inputImagem},
+                dataType: "json"
+            }).done(function(msg) {
+                $("#registaPonto").modal('hide');
+                atualizaMapa();
+            });
+        }
+    });
+
+    $("#editarPonto").click(function() {
+        var inputDesignacao, inputPais, inputTipo, inputDescricao, inputLink, erro = false, erroMsg = "Erro Edição de Dialeto:\n\n";
+
+        inputDesignacao = $("#inputDesignacaoEdit").val();
+        inputPais = $("#inputPaisEdit").val();
+        inputTipo = $("#inputTipoEdit").val();
+        inputDescricao = $("#inputDescricaoEdit").val();
+        inputLink = $("#inputLinkEdit").val();
+        inputImagem = $("#inputImagemEdit").val();
+        inputIdDialeto = $("#inputIdDialetoEdit").val();
+        if (inputDesignacao.length == 0) {
+            erro = true;
+            erroMsg += "Designação não pode ser vazia.\n";
+        }
+        if (inputDescricao.length == 0) {
+            erro = true;
+            erroMsg += "Descrição não pode ser vazia.\n";
+        }
+        if (erro) {
+            alert(erroMsg);
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "../CodeIgniter/pontos/editaPonto",
+                data: {inputIdDialeto: inputIdDialeto, inputDesignacao: inputDesignacao, inputPais: inputPais, inputTipo: inputTipo, inputDescricao: inputDescricao, inputLink: inputLink, inputImagem: inputImagem},
+                dataType: "json"
+            }).done(function(info) {
+                if (info.estado) {
+                    alert("Dialeto alterado com sucesso!");
+                    map.removePopup(selectedFeature.popup);
+                    selectedFeature.popup.destroy();
+                    selectedFeature.popup = null;
+                    atualizaMapa();
+                } else {
+                    alert("Não foi possível alterar este dialeto!");
+                }
+                $('#editaPonto').modal('hide');
+                atualizaMapa();
+            });
+        }
+    });
+
 
     /* EXEMPLO DE TODOS OS MAPAS GOOGLE
      var options = {
@@ -292,12 +412,11 @@ function init() {
     map.events.register("click", map, function(e) {
         var lonlat = map.getLonLatFromPixel(e.xy);
         lonlat.transform("EPSG:900913", "EPSG:4326");
-        //alert("Longitude: " + lonlat.lon + "\nLatitude: " + lonlat.lat)
         lon = lonlat.lon;
         lat = lonlat.lat;
         if (clickfeito === true) {
-            $("#latitude").html(lat);
-            $("#longitude").html(lon);
+            $("#inputLatitude").val(lat);
+            $("#inputLongitude").val(lon);
             $("#registaPonto").modal('show');
             clickfeito = false;
         }
@@ -398,7 +517,7 @@ function init() {
         }
     });
 
-    var selectedFeaure, popup;
+    var popup;
     function onPopupClose(evt) {
         select.unselect(selectedFeature);
     }
@@ -406,27 +525,30 @@ function init() {
         selectedFeature = feature;
         var attr = feature.attributes;
 
-        tipoDialeto = attr.tipo;
-        paisDialeto = attr.pais;
-        imagemDialeto = attr.imagem;
-        linkDialeto = attr.link;
-        descricaoDialeto = attr.descricao;
-        designacaoDialeto = attr.designacao;
-        idDialeto = attr.id_dialeto;
-        idPontoFinal = attr.id_ponto;
+        var idTipoDialeto = attr.id_tipo;
+        var tipoDialeto = attr.tipo;
+        var idPaisDialeto = attr.id_pais;
+        var paisDialeto = attr.pais;
+        var imagemDialeto = attr.imagem;
+        var linkDialeto = attr.link;
+        var descricaoDialeto = attr.descricao;
+        var designacaoDialeto = attr.designacao;
+        var idDialeto = attr.id_dialeto;
+        var idPontoFinal = attr.id_ponto;
         var auxestado;
         $.getJSON("../CodeIgniter/main/verificaLogin", function(utilizador) {
             auxestado = utilizador[0].estado;
-            texto = "<div><h3>" + designacaoDialeto + " </h3>Tipo: " + tipoDialeto +
-                    "<br> País: " + paisDialeto + "<br>Descrição: " + descricaoDialeto +
-                    "<br>Imagem: <b>" + imagemDialeto + "</b><br>Link: " + linkDialeto + "<br><br>";
-            if (auxestado == 0) {
-                $("#login").show();
-            }
-            else {
-                $("#logout").show();
-                $("#criarDialeto").show();
-                texto += "<button class='btn btn-primary' id='alterarPonto'>Editar</button>&nbsp<button class='btn btn-primary' id='apagarPonto'>Apagar</button>";
+            var textoImagem = "";
+            if (imagemDialeto.length)
+                textoImagem = "<img src='" + imagemDialeto + "'/>";
+            var textoLink = "";
+            if (linkDialeto.length)
+                textoLink = "<a target='_blank' href='" + linkDialeto + "'>" + linkDialeto + "</a>";
+            var texto = "<div><h3>" + designacaoDialeto + " </h3><br/><b>Tipo de Dialeto: </b>" + tipoDialeto +
+                    "<br/><b>País: </b>" + paisDialeto + "<br/><b>Descrição: </b>" + descricaoDialeto +
+                    "<br/><br/>" + textoLink + "<br/>" + textoImagem + "<br/><br/>";
+            if (auxestado == 1) {
+                texto += "<br/><button class='btn btn-primary' id='alterarPonto'>Editar</button>&nbsp;&nbsp;<button class='btn btn-primary' id='apagarPonto'>Apagar</button>";
             }
             texto += "</div>";
             popup = new OpenLayers.Popup.FramedCloud("popup",
@@ -435,39 +557,40 @@ function init() {
                     null, true, onPopupClose);
             feature.popup = popup;
             map.addPopup(popup);
-
             $("#alterarPonto").click(function() {
-
-                if (situacaoFinal === "ligado")
-                    document.getElementById('inputLigadoEdit').checked = true;
-                else if (situacaoFinal === "desligado")
-                    document.getElementById('inputDesligadoEdit').checked = true;
-                else if (situacaoFinal === "avariado")
-                    document.getElementById('inputAvariadoEdit').checked = true;
-                else
-                    document.getElementById('inputContagemEdit').checked = true;
-                $("#inputDescricaoEdit").val(descricaoFinal);
-                $("#inputConsumoEdit").val(consumoFinal);
+                $("#inputIdDialetoEdit").val(idDialeto);
+                $("#inputDesignacaoEdit").val(designacaoDialeto);
+                $("#inputPaisEdit").val(idPaisDialeto);
+                $("#inputTipoEdit").val(idTipoDialeto);
+                $("#inputDescricaoEdit").val(descricaoDialeto);
+                $("#inputLinkEdit").val(linkDialeto);
+                $("#inputImagemEdit").val(imagemDialeto);
                 $('#editaPonto').modal('show');
             });
             $("#apagarPonto").click(function() {
-                $.getJSON("../CodeIgniter/pontos/apagaPonto/" + attr.id_contador + "", function(info) {
-                    if (info.estado)
-                        alert("Dialeto apagado com sucesso!");
-                    else
-                        alert("Não foi possível apagar este dialeto!");
-                });
+                var resultado = confirm("Tem a certeza que pretende remover o dialeto \"" + designacaoDialeto + "\"?");
+                if (resultado == true) {
+                    $.getJSON("../CodeIgniter/pontos/apagaPonto/" + idDialeto + "", function(info) {
+                        if (info.estado) {
+                            alert("Dialeto apagado com sucesso!");
+                            map.removePopup(selectedFeature.popup);
+                            selectedFeature.popup.destroy();
+                            selectedFeature.popup = null;
+                            atualizaMapa();
+                        } else {
+                            alert("Não foi possível apagar este dialeto!");
+                        }
+                    });
+                }
             });
         });
-
     }
+
     function onFeatureUnselect(feature) {
-        featureglobal = feature;
+        selectedFeature = feature;
         map.removePopup(feature.popup);
         feature.popup.destroy();
         feature.popup = null;
-        vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + numServico + "/" + numSituacao + "/" + numFavoritos + "/" + consumoMin + "/" + consumoMax + "/" + dataMin + "/" + dataMax + "";
-        vectore.refresh();
     }
 
     desenhaPonto = new OpenLayers.Control.DrawFeature(vector, OpenLayers.Handler.Point);
@@ -481,216 +604,4 @@ function init() {
                 clickfeito = true;
             }
         }});
-
-
-    /*    $("#resetFiltros").click(function() {
-     numServico = 0;
-     numSituacao = "todos";
-     numFavoritos = 0;
-     consumoMin = 0;
-     consumoMax = 0;
-     dataMin = 0;
-     dataMax = 0;
-     vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + numServico + "/" + numSituacao + "/" + numFavoritos + "/" + consumoMin + "/" + consumoMax + "/" + dataMin + "/" + dataMax + "";
-     vectore.refresh();
-     });*/
-
-    /*   $("#atualizaPontos").click(function() {
-     vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + numServico + "/" + numSituacao + "/" + numFavoritos + "/" + consumoMin + "/" + consumoMax + "/" + dataMin + "/" + dataMax + "";
-     vectore.refresh();
-     });*/
-
-    /*    $("#editarPonto").click(function() {
-     var situacao, consumo, descricao, verifica = true;
-     if (document.getElementById('inputLigadoEdit').checked)
-     situacao = "ligado";
-     else if (document.getElementById('inputDesligadoEdit').checked)
-     situacao = "desligado";
-     else if (document.getElementById('inputAvariadoEdit').checked)
-     situacao = "avariado";
-     else
-     situacao = "contagem";
-     consumo = $("#inputConsumoEdit").val();
-     descricao = $("#inputDescricaoEdit").val();
-     if (consumo.length == 0 || descricao.length == 0) {
-     alert("Tem de preencher todos os campos corretamente!");
-     verifica = false;
-     }
-     if (verifica == true) {
-     $.ajax({
-     type: "POST",
-     url: "../CodeIgniter/pontos/editaPonto",
-     data: {id: idFinal, situacao: situacao, descricao: descricao, consumo: consumo}
-     })
-     .done(function(msg) {
-     
-     });
-     $('#editaPonto').modal('hide');
-     }
-     });*/
-
-
-
-    /*   $("#atribuiAcessos").click(function() {
-     var email, agua = false, luz = false, gas = false, verifica = true;
-     email = $("#inputAcessoEmail").val();
-     if (document.getElementById('inputAcessoAgua').checked)
-     agua = true;
-     if (document.getElementById('inputAcessoLuz').checked)
-     luz = true;
-     if (document.getElementById('inputAcessoGas').checked)
-     gas = true;
-     if (email.length == 0) {
-     alert("Tem de preencher todos os campos corretamente!");
-     verifica = false;
-     }
-     if (verifica == true) {
-     $.getJSON("../CodeIgniter/main/atribuiAcessos/" + email + "/" + agua + "/" + luz + "/" + gas + "", function(info) {
-     if (info.estado) {
-     $("#atribuirAcessos").modal('hide');
-     }
-     else {
-     $("#erroAcessoEdit").addClass("alert alert-danger");
-     $("#erroAcessoEdit").html("Email inexistente! Tente outra vez!");
-     }
-     });
-     }
-     });*/
-
-    /*    $("#registarPonto").click(function() {
-     var servico, situacao, consumo, data, descricao, verifica = true;
-     if (document.getElementById('inputAgua').checked)
-     servico = 1;
-     else if (document.getElementById('inputLuz').checked)
-     servico = 2;
-     else //if(document.getElementById('inputGas').checked)
-     servico = 3;
-     if (temAcesso(servico) === false) {
-     alert("Não pode registar contadores deste serviço!");
-     verifica = false;
-     $("#registaPonto").modal('hide');
-     }
-     if (document.getElementById('inputLigado').checked)
-     situacao = "ligado";
-     else if (document.getElementById('inputDesligado').checked)
-     situacao = "desligado";
-     else if (document.getElementById('inputAvariado').checked)
-     situacao = "avariado";
-     else  //if(document.getElementById('inputContagem').checked)
-     situacao = "contagem";
-     consumo = $("#inputConsumo").val();
-     data = $("#inputData").val();
-     descricao = $("#inputDescricao").val();
-     if (consumo.length == 0 || data.length == 0 || descricao.length == 0) {
-     alert("Tem de preencher todos os campos corretamente!");
-     verifica = false;
-     }
-     if (verifica == true) {
-     $.ajax({
-     type: "POST",
-     url: "../CodeIgniter/pontos/registaPonto",
-     data: {servico: servico, situacao: situacao, consumo: consumo, data: data, descricao: descricao, latitude: lat, longitude: lon}
-     })
-     .done(function(msg) {
-     });
-     $("#registaPonto").modal('hide');
-     alert("Contador Registado com Sucesso!"); // Vector só faz refresh com este alert
-     vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + numServico + "/" + numSituacao + "/" + numFavoritos + "/" + consumoMin + "/" + consumoMax + "/" + dataMin + "/" + dataMax + "";
-     vectore.refresh();
-     }
-     });*/
-
-
-
-
-
-    /*  $("#recupera").click(function() {
-     email = $("#inputEmailRecupera").val();
-     $.getJSON("../CodeIgniter/main/recuperaPassword/" + email + "", function(info) {
-     if (info.estado) {
-     $("#modalPW").modal('hide');
-     $("#erro").addClass("alert alert-success");
-     $("#erro").html("Password enviada para o seu email.");
-     }
-     else {
-     $("#modalPW").modal('show');
-     $("#erroPW").addClass("alert alert-danger");
-     $("#erroPW").html("Email não registado.");
-     }
-     });
-     });*/
-
-    /*   $("#regista").click(function() {
-     var verifica = true;
-     email = $("#inputEmail").val();
-     password = $("#inputPassword").val();
-     if (email.length == 0 || password.length == 0) {
-     alert("Tem de preencher todos os campos!");
-     verifica = false;
-     }
-     if (verifica == true) {
-     $.getJSON("../CodeIgniter/main/fazRegisto/" + email + "/" + password + "", function(info) {
-     if (info.estado) {
-     $("#erro").addClass("alert alert-success");
-     $("#erro").html("Registado com sucesso. Prossiga para o login.");
-     }
-     else {
-     $("#erro").addClass("alert alert-danger");
-     $("#erro").html("Email já existente.");
-     }
-     });
-     }
-     });*/
-
-    /*   $("#procuraDescricao").keydown(function(tecla) {
-     if (tecla.keyCode === 13) {
-     desc = $(this).val();
-     if (desc.length === 0) {
-     alert("Tem de preencher o campo!");
-     }
-     else {
-     vectore.protocol.options.url = "../CodeIgniter/pontos/descricao/" + desc + "";
-     vectore.refresh();
-     }
-     //var center = new OpenLayers.LonLat(-8.84674, 41.69413).transform("EPSG:4326", "EPSG:900913");
-     //map.setCenter(center, 17);
-     }
-     });*/
-
-    /*    $("#removeDescricao").click(function() {
-     $("#procuraDescricao").val('');
-     vectore.protocol.options.url = "../CodeIgniter/pontos/getAllPontos/" + numServico + "/" + numSituacao + "/" + numFavoritos + "/" + consumoMin + "/" + consumoMax + "/" + dataMin + "/" + dataMax + "";
-     vectore.refresh();
-     });*/
-
-
-}
-
-
-
-function atribuiAcessos() {
-    $.getJSON("../CodeIgniter/main/getAcessos", function(dados) {
-        tipoFinal = dados.tipo;
-        if (dados.quantidade > 0)
-            temAcessos = true;
-        if (temAcessos) {
-            for (var i = 0; i < dados.quantidade; i++)
-            {
-                if (i == 0)
-                    acessos[i] = dados.primeiroAcesso;
-                if (i == 1)
-                    acessos[i] = dados.segundoAcesso;
-                if (i == 2)
-                    acessos[i] = dados.terceiroAcesso;
-            }
-        }
-    });
-}
-
-function temAcesso(id_servico) {
-    for (var i = 0; i < acessos.length; i++) {
-        if (acessos[i] == id_servico)
-            return true;
-    }
-    return false;
 }
